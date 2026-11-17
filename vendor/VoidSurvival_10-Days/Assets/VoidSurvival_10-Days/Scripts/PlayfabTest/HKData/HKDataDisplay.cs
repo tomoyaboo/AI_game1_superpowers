@@ -46,6 +46,8 @@ public class HKDataDisplay : MonoBehaviour
 
     private JArray _rows;
     private List<string> _tempCols = new List<string>();
+    private List<string> _allTempCols = new List<string>();
+    public float CurrentThermalDelta { get; private set; } = 0f;
     private List<string> _voltCols = new List<string>();
     private List<string> _currCols = new List<string>();
     private Dictionary<string, double[]> _range = new Dictionary<string, double[]>(); // col -> [min,max]
@@ -129,6 +131,8 @@ public class HKDataDisplay : MonoBehaviour
 
     private void ParseHKData(string json)
     {
+        CurrentThermalDelta = 0f;
+        _allTempCols.Clear();
         JToken root = JToken.Parse(json);
         _rows = (root.Type == JTokenType.Array) ? (JArray)root : root["rows"] as JArray;
 
@@ -139,6 +143,7 @@ public class HKDataDisplay : MonoBehaviour
         }
 
         var cols = ((JObject)_rows[0]).Properties().Select(p => p.Name).ToList();
+        _allTempCols = cols.Where(c => c.Contains("°C") || c.Contains("℃")).ToList();
         _tempCols = PickMostVariable(cols.Where(c => c.Contains("°C") || c.Contains("℃")).ToList(), tempCount);
         _voltCols = PickMostVariable(cols.Where(c => c.Contains("mV") || c.Contains("(V)")).ToList(), voltCount);
         _currCols = PickMostVariable(cols.Where(c => c.Contains("mA")).ToList(), currCount);
@@ -154,6 +159,30 @@ public class HKDataDisplay : MonoBehaviour
         _isLoaded = true;
         Debug.Log($"[HKDataDisplay] 読込完了 行数={_rows.Count} / 温度[{string.Join(", ", _tempCols)}]" +
                   $" 電圧[{string.Join(", ", _voltCols)}] 電流[{string.Join(", ", _currCols)}]");
+    }
+
+    internal static float ComputeThermalDelta(JObject row, List<string> tempCols)
+    {
+        if (row == null || tempCols == null) return 0f;
+
+        double min = double.MaxValue, max = double.MinValue;
+        bool any = false;
+        foreach (var c in tempCols)
+        {
+            if (c == null) continue;
+            var tok = row[c];
+            if (tok == null || tok.Type == JTokenType.Null) continue;
+            if (double.TryParse(tok.ToString(), out double v)
+                && !double.IsNaN(v) && !double.IsInfinity(v))
+            {
+                if (v < min) min = v;
+                if (v > max) max = v;
+                any = true;
+            }
+        }
+        if (!any) return 0f;
+        double delta = max - min;
+        return double.IsInfinity(delta) || delta > float.MaxValue ? 0f : (float)delta;
     }
 
     private double[] MinMax(string col)
@@ -197,6 +226,7 @@ public class HKDataDisplay : MonoBehaviour
     private void ShowRow(int i)
     {
         var row = (JObject)_rows[i];
+        CurrentThermalDelta = ComputeThermalDelta(row, _allTempCols);
 
         TempState = _tempCols.Count > 0 ? WorstState(_tempCols, row) : "NORMAL";
         VoltageState = _voltCols.Count > 0 ? WorstState(_voltCols, row) : "NORMAL";
