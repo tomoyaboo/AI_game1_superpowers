@@ -12,6 +12,8 @@ public abstract class Item : ScriptableObject, IDatabaseEntry<int>
     public string ItemName; // アイテムの名前
     public string ItemDescription; // アイテムの説明
     public Sprite ItemIcon; // アイテムのアイコン
+    [Tooltip("装備中にSEUの発生確率を下げる(シールド)アイテムかどうか")]
+    public bool isShield = false;
     /// <summary>
     /// アイテムを使用できるかどうかの判定
     /// </summary>
