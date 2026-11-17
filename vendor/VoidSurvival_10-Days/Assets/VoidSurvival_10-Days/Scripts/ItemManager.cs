@@ -168,7 +168,7 @@ public class ItemManager
             return;
         }
         var existingStack = GetItemStack(item);
-        if (existingStack.Item != null)
+        if (existingStack != null)
         {
             existingStack.Remove(amount);
             OnItemUpdated?.Invoke(inventory.IndexOf(existingStack), existingStack);
