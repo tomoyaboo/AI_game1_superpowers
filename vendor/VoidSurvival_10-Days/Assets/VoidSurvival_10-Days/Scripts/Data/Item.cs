@@ -14,6 +14,8 @@ public abstract class Item : ScriptableObject, IDatabaseEntry<int>
     public Sprite ItemIcon; // アイテムのアイコン
     [Tooltip("装備中にSEUの発生確率を下げる(シールド)アイテムかどうか")]
     public bool isShield = false;
+    [Tooltip("ESD発生中にドロップ率が上がる(帯電で得られる)エネルギー素材かどうか")]
+    public bool isEnergyMaterial = false;
     /// <summary>
     /// アイテムを使用できるかどうかの判定
     /// </summary>
