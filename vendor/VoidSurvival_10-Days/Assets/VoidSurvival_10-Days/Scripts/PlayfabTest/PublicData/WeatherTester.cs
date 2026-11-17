@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 // ============================================================
 //  WeatherTester.cs
 //  実データ(DataManager/HKDataDisplay)のLOW/NORMAL/HIGH状態から
-//  Inspectorで選んだ3項目を見て天気を決める簡易ルールベース判定。
+//  明暗・荒れ具合・計器信頼性の3軸を独立に判定。
 //  天気が変わるたびに OnWeatherChanged で通知する（WeatherDisplayが購読）。
 // ============================================================
 
@@ -14,29 +12,9 @@ public class WeatherTester : MonoBehaviour
 {
     public static WeatherTester Instance { get; private set; }
 
-    public enum DataSourceType
-    {
-        Gyro,
-        Mag1,
-        Mag2,
-        Mag3,
-        Radiation,
-        Temp,
-        Voltage,
-        Current,
-    }
-
     [Header("実データ連動の天気判定")]
     [SerializeField] private DataManager dataManager;
     [SerializeField] private HKDataDisplay hkDataDisplay;
-
-    [Header("判定に使う3項目（重複しないように選択）")]
-    [SerializeField] private DataSourceType[] selectedSources = new DataSourceType[3]
-    {
-        DataSourceType.Radiation,
-        DataSourceType.Mag1,
-        DataSourceType.Temp,
-    };
 
     public Weather CurrentRuleBasedWeather { get; private set; } = Weather.Sunny;
 
@@ -53,60 +31,49 @@ public class WeatherTester : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    public LightPhase CurrentLightPhase { get; private set; } = LightPhase.Sun;
+    public InstrumentReliability CurrentInstrumentReliability { get; private set; } = InstrumentReliability.Stable;
+
+    // 軸2(荒れ具合): 放射線+磁場3つのうちHIGHの個数で段階的に決める。
+    // LOW/NORMALの個数には依存しない(個数に関わらずHIGHが0なら必ずSunny)。
+    internal static Weather EvaluateRoughWeather(string radiationState, string mag1State, string mag2State, string mag3State)
+    {
+        int highCount = 0;
+        foreach (var s in new[] { radiationState, mag1State, mag2State, mag3State })
+        {
+            if (s == "HIGH") highCount++;
+        }
+        var levels = new[] { Weather.Sunny, Weather.Cloudy, Weather.Rainy, Weather.Thunderstorm };
+        return levels[Math.Min(highCount, levels.Length - 1)];
+    }
+
+    // 軸1(明暗): 電流が低いときは食(Eclipse)とみなす。
+    internal static LightPhase EvaluateLightPhase(string currentState)
+    {
+        return currentState == "LOW" ? LightPhase.Eclipse : LightPhase.Sun;
+    }
+
+    // 軸3(計器信頼性): ジャイロが高いときは姿勢が乱れているとみなす。
+    internal static InstrumentReliability EvaluateInstrumentReliability(string gyroState)
+    {
+        return gyroState == "HIGH" ? InstrumentReliability.Disturbed : InstrumentReliability.Stable;
+    }
+
     private void LateUpdate()
     {
-        if (dataManager == null && hkDataDisplay == null) return;
+        if (dataManager == null || hkDataDisplay == null) return;
 
-        var states = CollectSelectedStates();
-        if (states.Count == 0) return;
+        Weather weather = EvaluateRoughWeather(
+            dataManager.RadiationState, dataManager.Mag1State, dataManager.Mag2State, dataManager.Mag3State);
+        CurrentLightPhase = EvaluateLightPhase(hkDataDisplay.CurrentState);
+        CurrentInstrumentReliability = EvaluateInstrumentReliability(dataManager.GyroState);
 
-        Weather weather = EvaluateWeather(states);
         if (weather != CurrentRuleBasedWeather)
         {
             CurrentRuleBasedWeather = weather;
-            Debug.Log($"[WeatherTester] states=[{string.Join(", ", states)}] → Weather: {weather}");
+            Debug.Log($"[WeatherTester] rad={dataManager.RadiationState} mag1={dataManager.Mag1State} " +
+                       $"mag2={dataManager.Mag2State} mag3={dataManager.Mag3State} → Weather: {weather}");
             OnWeatherChanged?.Invoke(weather);
         }
-    }
-
-    private List<string> CollectSelectedStates()
-    {
-        var states = new List<string>();
-
-        foreach (var source in selectedSources)
-        {
-            string state = GetState(source);
-            if (state != null) states.Add(state);
-        }
-
-        return states;
-    }
-
-    private string GetState(DataSourceType source)
-    {
-        switch (source)
-        {
-            case DataSourceType.Gyro: return dataManager != null ? dataManager.GyroState : null;
-            case DataSourceType.Mag1: return dataManager != null ? dataManager.Mag1State : null;
-            case DataSourceType.Mag2: return dataManager != null ? dataManager.Mag2State : null;
-            case DataSourceType.Mag3: return dataManager != null ? dataManager.Mag3State : null;
-            case DataSourceType.Radiation: return dataManager != null ? dataManager.RadiationState : null;
-            case DataSourceType.Temp: return hkDataDisplay != null ? hkDataDisplay.TempState : null;
-            case DataSourceType.Voltage: return hkDataDisplay != null ? hkDataDisplay.VoltageState : null;
-            case DataSourceType.Current: return hkDataDisplay != null ? hkDataDisplay.CurrentState : null;
-            default: return null;
-        }
-    }
-
-    // 2つ以上HIGH→Thunderstorm、1つHIGH→Rainy、HIGHなし かつ 2つ以上LOW→Sunny、それ以外→Cloudy
-    private Weather EvaluateWeather(List<string> states)
-    {
-        int highCount = states.Count(s => s == "HIGH");
-        int lowCount = states.Count(s => s == "LOW");
-
-        if (highCount >= 2) return Weather.Thunderstorm;
-        if (highCount == 1) return Weather.Rainy;
-        if (lowCount >= 2) return Weather.Sunny;
-        return Weather.Cloudy;
     }
 }
