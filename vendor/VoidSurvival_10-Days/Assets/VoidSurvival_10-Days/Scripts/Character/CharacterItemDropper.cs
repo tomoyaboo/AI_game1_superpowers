@@ -4,6 +4,22 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterStatus))]
 public class CharacterItemDropper : MonoBehaviour
 {
+    // 電流状態によるドロップ率への倍率補正(仮値。バランス調整は別途)
+    internal static float CurrentDropRateMultiplier(string currentState)
+    {
+        switch (currentState)
+        {
+            case "HIGH": return 1.2f;
+            case "LOW": return 0.8f;
+            default: return 1.0f; // NORMAL or unknown
+        }
+    }
+
+    internal static float EffectiveDropRate(float baseDropRate, string currentState)
+    {
+        return Mathf.Clamp01(baseDropRate * CurrentDropRateMultiplier(currentState));
+    }
+
     [Header("ドロップアイテム(デフォルト)")]
     [SerializeField] private List<DropItemInfo> dropItems;
     [Header("ドロップアイテム(天気ごと)")]
@@ -30,9 +46,10 @@ public class CharacterItemDropper : MonoBehaviour
     {
         if (_isDropInvoked) return;
         _isDropInvoked = true;
+        string currentState = HKDataDisplay.Instance != null ? HKDataDisplay.Instance.CurrentState : "NORMAL";
         foreach (var drop in _items)
         {
-            if (Random.Range(0, 1f) >= drop.dropRate) continue;
+            if (Random.Range(0, 1f) >= EffectiveDropRate(drop.dropRate, currentState)) continue;
             for (int i = 0; i < drop.number; i++)
             {
                 var item = Instantiate(fieldItemPrefab, transform.position, Quaternion.identity);
