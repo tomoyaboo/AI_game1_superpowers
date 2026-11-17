@@ -12,3 +12,7 @@ docs/VoidSurvival_*.md
 # codex exec の実行ログ(監査用途はコミットメッセージ・計画書のチェックリストで足りるため、
 # 生ログ自体はリポジトリに含めない)
 .codex-logs/
+
+# Unityバッチモードのコンパイル/テスト確認で出力するログ・結果ファイル(検証用の
+# 一時出力。計画書のExpected行とコミットメッセージで結果は残る)
+vendor/VoidSurvival_10-Days/.ci/
