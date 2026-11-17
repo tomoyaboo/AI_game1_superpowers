@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# VoidSurvival側の企画資料（チーム内資料のため、このpersonalリポジトリにはコミットしない）
+docs/VoidSurvival_*.md
