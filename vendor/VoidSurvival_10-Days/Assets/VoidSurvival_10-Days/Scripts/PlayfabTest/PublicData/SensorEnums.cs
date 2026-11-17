@@ -20,3 +20,17 @@ public enum Weather
     Rainy,        // 雨
     Thunderstorm  // 雷雨
 }
+
+/// <summary>明暗の状態(軸1)。電流状態から判定する。</summary>
+public enum LightPhase
+{
+    Sun,     // 日照
+    Eclipse  // 食
+}
+
+/// <summary>計器信頼性の状態(軸3)。ジャイロ状態から判定する。</summary>
+public enum InstrumentReliability
+{
+    Stable,    // 安定
+    Disturbed  // 乱れ
+}
