@@ -1,0 +1,23 @@
+{
+    "name": "VoidSurvival.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "PlayFab",
+        "UniTask",
+        "Cinemachine",
+        "Unity.TextMeshPro",
+        "Unity.VisualScripting.Core",
+        "CrossPlatformInput",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Universal.2D.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
