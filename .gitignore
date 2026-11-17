@@ -3,3 +3,8 @@
 
 # VoidSurvival側の企画資料（チーム内資料のため、このpersonalリポジトリにはコミットしない）
 docs/VoidSurvival_*.md
+
+# VoidSurvival本体プロジェクト（vendor/VoidSurvival_10-Days）は、
+# upstream（NakaAwjr/VoidSurvival_10-Days）への接続を断った上での
+# ワーキングコピーとしてこのリポジトリで追跡・コミットする。
+# upstream由来のUnity生成物（Library/Temp/等）は vendor配下の .gitignore で除外される。
