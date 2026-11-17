@@ -14,6 +14,9 @@ public class CommunicationDialog : Dialog
 
     private bool isSuccessful = false;
 
+    public event System.Action OnFirstSuccess;
+    public bool HasSucceededOnce { get; private set; } = false;
+
     // 正解の値
     private int targetFreq, targetDir, targetLen;
     // 現在の値
@@ -114,6 +117,13 @@ public class CommunicationDialog : Dialog
         successCount++;
         freqHandle.isDraggable = false;
         dirHandle.isDraggable = false;
+
+        if (!HasSucceededOnce)
+        {
+            HasSucceededOnce = true;
+            OnFirstSuccess?.Invoke();
+        }
+
         if (successCount >= dailyLimit)
         {
             // 1日の通信回数上限に達した場合の処理
