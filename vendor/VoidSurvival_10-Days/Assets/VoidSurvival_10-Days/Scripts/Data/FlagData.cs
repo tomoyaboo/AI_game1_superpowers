@@ -22,12 +22,21 @@ public class FlagData : ScriptableObject
     public bool destructionRock = false;
     public bool findSomeone = false;
 
-    public void FromSaveData()
+    public FlagSaveData ToSaveData()
     {
-
+        return new FlagSaveData
+        {
+            CraftTutorial = craftTutorial,
+            CraftWorkbench = craftWorkbench,
+            DestructionRock = destructionRock,
+            FindSomeone = findSomeone,
+        };
     }
-    public void ToSaveData()
+    public void FromSaveData(FlagSaveData saveData)
     {
-
+        craftTutorial = saveData.CraftTutorial;
+        craftWorkbench = saveData.CraftWorkbench;
+        destructionRock = saveData.DestructionRock;
+        findSomeone = saveData.FindSomeone;
     }
 }

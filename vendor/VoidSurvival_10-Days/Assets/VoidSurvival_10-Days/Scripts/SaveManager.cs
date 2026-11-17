@@ -68,6 +68,7 @@ public class SaveManager : MonoBehaviour
             FacilityManager.Instance.FromSaveData(_data.FacilityDatas);
             WorkbenchManager.Instance.FromSaveData(_data.WorkbenchData);
             _playerStatus.FromSaveData(_data.PlayerSaveData);
+            FlagData.Instance.FromSaveData(_data.FlagSaveData);
         }
         _loadOp.allowSceneActivation = true;
         await UniTask.WaitUntil(() => _loadOp.isDone);
@@ -85,6 +86,7 @@ public class SaveManager : MonoBehaviour
         _data.FacilityDatas = FacilityManager.Instance.ToSaveData();
         _data.WorkbenchData = WorkbenchManager.Instance.ToSaveData();
         _data.PlayerSaveData = _playerStatus.ToSaveData();
+        _data.FlagSaveData = FlagData.Instance.ToSaveData();
         _data.Scene = SceneManager.GetActiveScene().name;
         saveKeys.SetValue(key, DateTime.Now.ToString());
         await _saveService.SaveAsync(key, _data);
