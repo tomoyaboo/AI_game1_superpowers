@@ -70,6 +70,14 @@ public class TerminalIntroSequence : MonoBehaviour
 
     private void Start()
     {
+        // playerはTitleDemoシーン側にしか実体が無く(DontDestroyOnLoadで引き継がれる)、
+        // 1_Terminal_Demoのシーンファイル上でInspector参照を直接貼れないため、
+        // 未設定ならランタイムで検索する。
+        if (player == null)
+        {
+            var controller = FindAnyObjectByType<PlayerController>();
+            if (controller != null) player = controller.gameObject;
+        }
         if (player != null) player.SetActive(false);
         StartCoroutine(RunSequence());
     }
