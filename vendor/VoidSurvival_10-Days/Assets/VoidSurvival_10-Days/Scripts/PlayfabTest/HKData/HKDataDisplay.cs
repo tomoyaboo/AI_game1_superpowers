@@ -60,6 +60,12 @@ public class HKDataDisplay : MonoBehaviour
     private List<string> _currCols = new List<string>();
     private Dictionary<string, double[]> _range = new Dictionary<string, double[]>(); // col -> [min,max]
 
+    public string DataSourceLabel { get; private set; } = "LIVE";
+
+    [Tooltip("PlayFab応答待ちの最大秒数。超えたらローカルフォールバックに切り替える(仮値)")]
+    [SerializeField] private float playFabTimeoutSeconds = 10f;
+    private bool _fallbackTriggered = false;
+
     private bool _isLoaded = false;
 
     private void Awake()
@@ -76,6 +82,7 @@ public class HKDataDisplay : MonoBehaviour
     void Start()
     {
         PlayFabSettings.staticSettings.TitleId = "148482";
+        StartCoroutine(TimeoutFallbackCoroutine());
         LoadHKData();
     }
 
@@ -105,18 +112,31 @@ public class HKDataDisplay : MonoBehaviour
 
     private void LoadHKData(int retryCount = 0)
     {
+        if (_fallbackTriggered) return;
+
         var login = new LoginWithCustomIDRequest { CustomId = "VoidSurvival_User", CreateAccount = false };
         PlayFabClientAPI.LoginWithCustomID(login, _ =>
         {
+            if (_fallbackTriggered) return;
             PlayFabClientAPI.GetTitleData(new GetTitleDataRequest(), result =>
             {
+                if (_fallbackTriggered) return;
                 if (result.Data != null && result.Data.ContainsKey("HKdata"))
                     ParseHKData(result.Data["HKdata"]);
                 else
+                {
                     Debug.LogError("[HKDataDisplay] TitleData に 'HKdata' キーがありません。");
-            }, err => Debug.LogError("[HKDataDisplay] GetTitleData 失敗: " + err.GenerateErrorReport()));
+                    LoadLocalFallback();
+                }
+            }, err =>
+            {
+                if (_fallbackTriggered) return;
+                Debug.LogError("[HKDataDisplay] GetTitleData 失敗: " + err.GenerateErrorReport());
+                LoadLocalFallback();
+            });
         }, err =>
         {
+            if (_fallbackTriggered) return;
             // DataManager等が同時にLoginWithCustomIDを叩くと同じIDでの同時ログインが409 Conflictになることがあるため、
             // 少し待ってリトライする（他のログイン処理と時間をずらせば通常成功する）。
             if (retryCount < MaxLoginRetries)
@@ -127,6 +147,7 @@ public class HKDataDisplay : MonoBehaviour
             else
             {
                 Debug.LogError("[HKDataDisplay] Login 失敗（リトライ上限到達）: " + err.GenerateErrorReport());
+                LoadLocalFallback();
             }
         });
     }
@@ -137,12 +158,41 @@ public class HKDataDisplay : MonoBehaviour
         LoadHKData(retryCount);
     }
 
+    private IEnumerator TimeoutFallbackCoroutine()
+    {
+        yield return new WaitForSeconds(playFabTimeoutSeconds);
+        if (!_isLoaded)
+        {
+            LoadLocalFallback();
+        }
+    }
+
+    private void LoadLocalFallback()
+    {
+        if (_fallbackTriggered || _isLoaded) return;
+        _fallbackTriggered = true;
+
+        var textAsset = Resources.Load<TextAsset>("LocalFallbackData/HKData");
+        if (textAsset == null)
+        {
+            Debug.LogError("[HKDataDisplay] ローカルフォールバックデータが見つかりません。");
+            return;
+        }
+        DataSourceLabel = "SIM";
+        ParseHKData(textAsset.text);
+    }
+
+    internal static JArray ParseHkRows(string json)
+    {
+        JToken root = JToken.Parse(json);
+        return (root.Type == JTokenType.Array) ? (JArray)root : root["rows"] as JArray;
+    }
+
     private void ParseHKData(string json)
     {
         CurrentThermalDelta = 0f;
         _allTempCols.Clear();
-        JToken root = JToken.Parse(json);
-        _rows = (root.Type == JTokenType.Array) ? (JArray)root : root["rows"] as JArray;
+        _rows = ParseHkRows(json);
 
         if (_rows == null || _rows.Count == 0)
         {
