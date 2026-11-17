@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 using System.Collections.Generic;
 using PlayFab;
 using PlayFab.ClientModels;
@@ -39,6 +40,12 @@ public class DataManager : MonoBehaviour
         public string Mag3State;
         public string RadiationState;
     }
+
+    public string DataSourceLabel { get; private set; } = "LIVE";
+
+    [Tooltip("PlayFab応答待ちの最大秒数。超えたらローカルフォールバックに切り替える(仮値)")]
+    [SerializeField] private float playFabTimeoutSeconds = 10f;
+    private bool _fallbackTriggered = false;
 
     private GameMasterDataRoot _rootData;
     private bool _isDataLoaded = false;
@@ -235,27 +242,91 @@ public class DataManager : MonoBehaviour
         return "HIGH";
     }
 
+    internal static GameMasterDataRoot ParseGameMasterData(string json)
+    {
+        try
+        {
+            return JsonConvert.DeserializeObject<GameMasterDataRoot>(json);
+        }
+        catch (System.Exception)
+        {
+            return null;
+        }
+    }
+
     private void LoadDataFromPlayFab()
     {
+        StartCoroutine(TimeoutFallbackCoroutine());
+
         var loginRequest = new LoginWithCustomIDRequest { CustomId = "VoidSurvival_User", CreateAccount = false };
         PlayFabClientAPI.LoginWithCustomID(loginRequest, loginRes => {
+            if (_fallbackTriggered) return;
             PlayFabClientAPI.GetTitleData(new GetTitleDataRequest(), result => {
-                if (result.Data.ContainsKey("GameMasterData"))
+                if (_fallbackTriggered) return;
+                if (result.Data != null && result.Data.ContainsKey("GameMasterData"))
                 {
                     string jsonStr = result.Data["GameMasterData"];
-                    _rootData = JsonConvert.DeserializeObject<GameMasterDataRoot>(jsonStr);
-
-                    if (_rootData != null && _rootData.Gyro != null && _rootData.Gyro.Count > 0)
+                    var parsed = ParseGameMasterData(jsonStr);
+                    if (parsed != null)
                     {
-                        _dataStartOffset = _rootData.Gyro[0].TotalSeconds;
-                        _dataSpanSec = _rootData.Gyro[_rootData.Gyro.Count - 1].TotalSeconds - _dataStartOffset;
-                        ComputeStateRanges();
-                        _isDataLoaded = true;
-                        Debug.Log("★全センサーデータ（Mag3つ含む）読み込み完了！");
+                        _rootData = parsed;
+                        OnGameMasterDataLoaded("LIVE");
+                    }
+                    else
+                    {
+                        LoadLocalFallback();
                     }
                 }
-            }, null);
-        }, null);
+                else
+                {
+                    LoadLocalFallback();
+                }
+            }, error => { if (!_fallbackTriggered) LoadLocalFallback(); });
+        }, error => { if (!_fallbackTriggered) LoadLocalFallback(); });
+    }
+
+    private IEnumerator TimeoutFallbackCoroutine()
+    {
+        yield return new WaitForSeconds(playFabTimeoutSeconds);
+        if (!_isDataLoaded)
+        {
+            LoadLocalFallback();
+        }
+    }
+
+    private void LoadLocalFallback()
+    {
+        if (_fallbackTriggered || _isDataLoaded) return;
+        _fallbackTriggered = true;
+
+        var textAsset = Resources.Load<TextAsset>("LocalFallbackData/GameMasterData");
+        if (textAsset == null)
+        {
+            Debug.LogError("[DataManager] ローカルフォールバックデータが見つかりません。");
+            return;
+        }
+        var parsed = ParseGameMasterData(textAsset.text);
+        if (parsed == null)
+        {
+            Debug.LogError("[DataManager] ローカルフォールバックデータの解析に失敗しました。");
+            return;
+        }
+        _rootData = parsed;
+        OnGameMasterDataLoaded("SIM");
+    }
+
+    /// <summary>データロード完了後の共通処理。</summary>
+    private void OnGameMasterDataLoaded(string sourceLabel)
+    {
+        if (_rootData != null && _rootData.Gyro != null && _rootData.Gyro.Count > 0)
+        {
+            DataSourceLabel = sourceLabel;
+            _dataStartOffset = _rootData.Gyro[0].TotalSeconds;
+            _dataSpanSec = _rootData.Gyro[_rootData.Gyro.Count - 1].TotalSeconds - _dataStartOffset;
+            ComputeStateRanges();
+            _isDataLoaded = true;
+            Debug.Log($"★全センサーデータ読み込み完了！(source={sourceLabel})");
+        }
     }
 
     // HIGH/NORMAL/LOW判定・Radiationの変化判定に使う範囲を、データ全体から一度だけ求めておく
