@@ -5,8 +5,7 @@ using UnityEngine;
 /// SAA通過中(磁場が弱い かつ 放射線が強い)に確率で発生し、一定時間
 /// PlayerStatus.IsInversion を true にする(移動の左右反転)。
 ///
-/// 既知の簡略化: 「屋外にいる」条件は未実装(ZONE-Nのエリア分割タスクで対応予定)。
-/// 現時点では場所を問わず判定する。
+/// 遮蔽物(ShelterZone)の中にいる間はSEUの判定をしない。
 /// </summary>
 public class SeuEffectController : MonoBehaviour
 {
@@ -69,6 +68,7 @@ public class SeuEffectController : MonoBehaviour
     private void TryTrigger()
     {
         if (DataManager.Instance == null || _playerStatus == null) return;
+        if (PlayerShelterState.IsSheltered) return; // 遮蔽物の中にいる間は判定しない
 
         bool saa = IsSaaCondition(
             DataManager.Instance.Mag1State, DataManager.Instance.Mag2State,
