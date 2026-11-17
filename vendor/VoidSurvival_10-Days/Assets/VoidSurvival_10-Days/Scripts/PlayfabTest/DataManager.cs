@@ -28,6 +28,15 @@ public class DataManager : MonoBehaviour
     public string Mag3State { get; private set; } = "NORMAL";
     public string RadiationState { get; private set; } = "NORMAL";
 
+    public struct SensorStates
+    {
+        public string GyroState;
+        public string Mag1State;
+        public string Mag2State;
+        public string Mag3State;
+        public string RadiationState;
+    }
+
     private GameMasterDataRoot _rootData;
     private bool _isDataLoaded = false;
     private int _dataStartOffset = 0;
@@ -61,13 +70,7 @@ public class DataManager : MonoBehaviour
     {
         if (!_isDataLoaded || _rootData == null || TimeManager.Instance == null) return;
 
-        int gameElapsedMinutes = (TimeManager.Instance.GetHour() * 60) + TimeManager.Instance.GetMinute();
-        int rawElapsedSec = Mathf.FloorToInt(gameElapsedMinutes * speedFactor);
-
-        if (loop && _dataSpanSec > 0)
-            rawElapsedSec %= (_dataSpanSec + 1);
-
-        int targetTotalSec = _dataStartOffset + rawElapsedSec;
+        int targetTotalSec = GetCurrentTargetTotalSec();
 
         // 全てのセンサーデータを現在時刻に合わせて検索
         var cGyro = _rootData.Gyro?.Where(d => d.TotalSeconds <= targetTotalSec).OrderByDescending(d => d.TotalSeconds).FirstOrDefault();
@@ -87,16 +90,74 @@ public class DataManager : MonoBehaviour
         UpdateUI(cGyro, cMag1, cMag2, cMag3, cRad, prevRad);
     }
 
+    public int GetCurrentTargetTotalSec()
+    {
+        if (TimeManager.Instance == null) return _dataStartOffset;
+        int gameElapsedMinutes = (TimeManager.Instance.GetHour() * 60) + TimeManager.Instance.GetMinute();
+        int rawElapsedSec = Mathf.FloorToInt(gameElapsedMinutes * speedFactor);
+
+        if (loop && _dataSpanSec > 0)
+            rawElapsedSec %= (_dataSpanSec + 1);
+
+        return _dataStartOffset + rawElapsedSec;
+    }
+
+    /// <summary>
+    /// 任意の時刻(targetTotalSec)でのセンサー状態を現在値と同じ分類ロジックで計算する。
+    /// インスタンスの現在値プロパティは変更しない。データ未ロード時はすべて"NORMAL"を返す。
+    /// </summary>
+    public SensorStates SampleStatesAt(int targetTotalSec)
+    {
+        if (_rootData == null) return new SensorStates
+        {
+            GyroState = "NORMAL", Mag1State = "NORMAL", Mag2State = "NORMAL",
+            Mag3State = "NORMAL", RadiationState = "NORMAL"
+        };
+
+        var cGyro = _rootData.Gyro?.Where(d => d.TotalSeconds <= targetTotalSec).OrderByDescending(d => d.TotalSeconds).FirstOrDefault();
+        var cMag1 = _rootData.Mag1?.Where(d => d.TotalSeconds <= targetTotalSec).OrderByDescending(d => d.TotalSeconds).FirstOrDefault();
+        var cMag2 = _rootData.Mag2?.Where(d => d.TotalSeconds <= targetTotalSec).OrderByDescending(d => d.TotalSeconds).FirstOrDefault();
+        var cMag3 = _rootData.Mag3?.Where(d => d.TotalSeconds <= targetTotalSec).OrderByDescending(d => d.TotalSeconds).FirstOrDefault();
+        var cRad = _rootData.Radiation?.Where(d => d.TotalSeconds <= targetTotalSec).OrderByDescending(d => d.TotalSeconds).FirstOrDefault();
+
+        RadiationData prevRad = null;
+        if (cRad != null && _radSorted != null)
+        {
+            int idx = _radSorted.IndexOf(cRad);
+            if (idx > 0) prevRad = _radSorted[idx - 1];
+        }
+
+        return ClassifyAll(cGyro, cMag1, cMag2, cMag3, cRad, prevRad);
+    }
+
+    private SensorStates ClassifyAll(GyroData gyro, MagData m1, MagData m2, MagData m3, RadiationData rad, RadiationData prevRad)
+    {
+        var states = new SensorStates
+        {
+            GyroState = GyroState,
+            Mag1State = Mag1State,
+            Mag2State = Mag2State,
+            Mag3State = Mag3State,
+            RadiationState = RadiationState
+        };
+        if (gyro != null) states.GyroState = Classify(Magnitude(gyro), _gyroMagMin, _gyroMagMax);
+        if (m1 != null) states.Mag1State = Classify(Magnitude(m1), _mag1MagMin, _mag1MagMax);
+        if (m2 != null) states.Mag2State = Classify(Magnitude(m2), _mag2MagMin, _mag2MagMax);
+        if (m3 != null) states.Mag3State = Classify(Magnitude(m3), _mag3MagMin, _mag3MagMax);
+        if (rad != null)
+            states.RadiationState = (prevRad == null) ? "LOW" : ClassifyChange(Mathf.Abs(rad.SignalCount - prevRad.SignalCount));
+        return states;
+    }
+
     // 表示モード(useStateDisplay)に関わらず、他スクリプトが参照できるよう常に状態を更新しておく
     private void UpdateStates(GyroData gyro, MagData m1, MagData m2, MagData m3, RadiationData rad, RadiationData prevRad)
     {
-        if (gyro != null) GyroState = Classify(Magnitude(gyro), _gyroMagMin, _gyroMagMax);
-        if (m1 != null) Mag1State = Classify(Magnitude(m1), _mag1MagMin, _mag1MagMax);
-        if (m2 != null) Mag2State = Classify(Magnitude(m2), _mag2MagMin, _mag2MagMax);
-        if (m3 != null) Mag3State = Classify(Magnitude(m3), _mag3MagMin, _mag3MagMax);
-
-        if (rad != null)
-            RadiationState = (prevRad == null) ? "LOW" : ClassifyChange(Mathf.Abs(rad.SignalCount - prevRad.SignalCount));
+        var states = ClassifyAll(gyro, m1, m2, m3, rad, prevRad);
+        GyroState = states.GyroState;
+        Mag1State = states.Mag1State;
+        Mag2State = states.Mag2State;
+        Mag3State = states.Mag3State;
+        RadiationState = states.RadiationState;
     }
 
     private void UpdateUI(GyroData gyro, MagData m1, MagData m2, MagData m3, RadiationData rad, RadiationData prevRad)
