@@ -170,6 +170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dataManager: {fileID: 1594609949}
   hkDataDisplay: {fileID: 1961860107}
+  selectedSources: 040000000100000005000000
 --- !u!1 &134692675
 GameObject:
   m_ObjectHideFlags: 0
@@ -796,55 +797,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 446671648}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &801124192
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 801124194}
-  - component: {fileID: 801124193}
-  m_Layer: 0
-  m_Name: SeuEffectController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &801124193
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 801124192}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3f8497280db4cd29943febe5fd60866, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  checkInterval: 1
-  baseTriggerProbability: 0.04
-  shieldProbabilityMultiplier: 0.25
-  activeDuration: 12
-  cooldownDuration: 20
---- !u!4 &801124194
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 801124192}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &860158507 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2882814635830300548, guid: 946d018d010fb1f48ae32d42b31a1296, type: 3}
@@ -923,53 +875,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2117484509388702912, guid: 2299e558ccfb3b84fb41e9f442ed6ae1, type: 3}
   m_PrefabInstance: {fileID: 640159351}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1278817212
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1278817214}
-  - component: {fileID: 1278817213}
-  m_Layer: 0
-  m_Name: EsdEffectController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1278817213
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1278817212}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 98bf9c78b05b4ea0a1fe0a9f0398d055, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  checkInterval: 1
-  thermalDeltaThreshold: 20
-  facilityDamagePerCheck: 2
---- !u!4 &1278817214
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1278817212}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1290648353
 GameObject:
   m_ObjectHideFlags: 0
@@ -2355,5 +2260,3 @@ SceneRoots:
   - {fileID: 1616883274}
   - {fileID: 134692680}
   - {fileID: 640159351}
-  - {fileID: 801124194}
-  - {fileID: 1278817214}
