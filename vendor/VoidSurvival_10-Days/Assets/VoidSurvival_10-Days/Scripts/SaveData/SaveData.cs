@@ -7,5 +7,6 @@ public class SaveData
     public FacilitySaveData[] FacilityDatas;
     public WorkbenchSaveData WorkbenchData;
     public PlayerSaveData PlayerSaveData;
+    public FlagSaveData FlagSaveData;
     public string Scene;
 }

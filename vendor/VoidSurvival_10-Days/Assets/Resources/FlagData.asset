@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   craftTutorial: 0
   craftWorkbench: 0
-  destructionRock: 1
-  findSomeone: 1
+  destructionRock: 0
+  findSomeone: 0

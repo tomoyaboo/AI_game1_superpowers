@@ -32,7 +32,7 @@ public class CharacterItemDropper : MonoBehaviour
         _isDropInvoked = true;
         foreach (var drop in _items)
         {
-            if (Random.Range(0, 1f) >= drop.dropRate) break;
+            if (Random.Range(0, 1f) >= drop.dropRate) continue;
             for (int i = 0; i < drop.number; i++)
             {
                 var item = Instantiate(fieldItemPrefab, transform.position, Quaternion.identity);
