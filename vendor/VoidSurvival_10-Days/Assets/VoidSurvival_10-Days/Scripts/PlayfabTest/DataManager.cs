@@ -28,6 +28,9 @@ public class DataManager : MonoBehaviour
     public string Mag3State { get; private set; } = "NORMAL";
     public string RadiationState { get; private set; } = "NORMAL";
 
+    public int CurrentRadiationSignalCount { get; private set; } = 0;
+    public float CurrentMagMagnitude { get; private set; } = 0f;
+
     public struct SensorStates
     {
         public string GyroState;
@@ -85,6 +88,9 @@ public class DataManager : MonoBehaviour
             int idx = _radSorted.IndexOf(cRad);
             if (idx > 0) prevRad = _radSorted[idx - 1];
         }
+
+        if (cRad != null) CurrentRadiationSignalCount = cRad.SignalCount;
+        CurrentMagMagnitude = SensorClassifier.AverageMagMagnitude(cMag1, cMag2, cMag3);
 
         UpdateStates(cGyro, cMag1, cMag2, cMag3, cRad, prevRad);
         UpdateUI(cGyro, cMag1, cMag2, cMag3, cRad, prevRad);
