@@ -8,3 +8,7 @@ docs/VoidSurvival_*.md
 # upstream（NakaAwjr/VoidSurvival_10-Days）への接続を断った上での
 # ワーキングコピーとしてこのリポジトリで追跡・コミットする。
 # upstream由来のUnity生成物（Library/Temp/等）は vendor配下の .gitignore で除外される。
+
+# codex exec の実行ログ(監査用途はコミットメッセージ・計画書のチェックリストで足りるため、
+# 生ログ自体はリポジトリに含めない)
+.codex-logs/
