@@ -16,6 +16,18 @@ using UnityEngine;
 /// </summary>
 class PowerSupply : FacilityBase
 {
+    // 電圧状態による作業台効率への補正(仮値。バランス調整は別途)
+    // LOW: 電圧不足で作業台が遅くなる / HIGH: 電圧十分で若干速くなる
+    internal static float VoltageEfficiencyDelta(string voltageState)
+    {
+        switch (voltageState)
+        {
+            case "LOW": return 0.20f;
+            case "HIGH": return -0.10f;
+            default: return 0f; // NORMAL or unknown
+        }
+    }
+
     public override FacilityManager.FacilityType FacilityType => FacilityManager.FacilityType.PowerSupply;
     public override String FacilityName { get; protected set; } = "電源";
     public override int MaxHealthPoint { get; protected set; } = 200;
@@ -24,12 +36,16 @@ class PowerSupply : FacilityBase
         new DynamicBuff(() =>
         {
             if (IsBroken) return 0f;
-            return -0.15f * Level;
+            float levelEffect = -0.15f * Level;
+            float voltageEffect = HKDataDisplay.Instance != null
+                ? VoltageEfficiencyDelta(HKDataDisplay.Instance.VoltageState)
+                : 0f;
+            return levelEffect + voltageEffect;
         })
         {
             BuffType = OthersBuffType.WorkbenchEfficiency,
             OperationType = BuffOperationType.Multiply,
-            Description = "WorkbenchEfficiency increased by " + (15 * Level) + "%"
+            Description = "WorkbenchEfficiency affected by Level and Voltage"
         },
         new DynamicBuff(() =>
         {
