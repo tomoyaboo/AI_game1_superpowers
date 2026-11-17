@@ -76,6 +76,21 @@ public class TimeManager : MonoBehaviour
         return maxDays - GetDay();
     }
 
+    internal static (int days, int hours) CalculateReentryEta(float elapsedTime, int maxDays, float minutesPerDay)
+    {
+        // elapsedTime is already measured in game minutes; minutesPerDay controls real-time pacing.
+        float totalMinutes = maxDays * 1440f;
+        float remainingMinutes = Mathf.Max(0f, totalMinutes - elapsedTime);
+        int days = Mathf.FloorToInt(remainingMinutes / 1440f);
+        int hours = Mathf.FloorToInt((remainingMinutes % 1440f) / 60f);
+        return (days, hours);
+    }
+
+    public (int days, int hours) GetReentryEta()
+    {
+        return CalculateReentryEta(_elapsedTime, maxDays, minutesPerDay);
+    }
+
     /// <summary>
     /// タイマー開始，_isPausedがtrueになるまで時間を進める
     /// </summary>
