@@ -11,6 +11,9 @@ public class SeuEffectController : MonoBehaviour
 {
     public static SeuEffectController Instance { get; private set; }
 
+    public bool IsActive => _phase == SeuPhase.Active;
+    public event System.Action<bool> OnActiveStateChanged;
+
     private enum SeuPhase { Normal, Active, Cooldown }
 
     [Header("SEU調整パラメータ(仮値。バランス調整は別途)")]
@@ -112,6 +115,7 @@ public class SeuEffectController : MonoBehaviour
         _phase = SeuPhase.Active;
         _timer = 0f;
         if (_playerStatus != null) _playerStatus.IsInversion = true;
+        OnActiveStateChanged?.Invoke(true);
     }
 
     private void EndActive()
@@ -119,6 +123,7 @@ public class SeuEffectController : MonoBehaviour
         _phase = SeuPhase.Cooldown;
         _timer = 0f;
         if (_playerStatus != null) _playerStatus.IsInversion = false;
+        OnActiveStateChanged?.Invoke(false);
     }
 
     /// <summary>リブート操作等からSEUを早期終了させるための口(UI配線は別タスク)。</summary>
