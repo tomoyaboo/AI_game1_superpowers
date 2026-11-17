@@ -44,6 +44,14 @@ public class HKDataDisplay : MonoBehaviour
     public string VoltageState { get; private set; } = "NORMAL";
     public string CurrentState { get; private set; } = "NORMAL";
 
+    public struct HKStates
+    {
+        public string TempState;
+        public string VoltageState;
+        public string CurrentState;
+        public float ThermalDelta;
+    }
+
     private JArray _rows;
     private List<string> _tempCols = new List<string>();
     private List<string> _allTempCols = new List<string>();
@@ -223,14 +231,45 @@ public class HKDataDisplay : MonoBehaviour
         return "#9EE09E"; // NORMAL
     }
 
+    private HKStates ClassifyRow(JObject row)
+    {
+        return new HKStates
+        {
+            TempState = _tempCols.Count > 0 ? WorstState(_tempCols, row) : "NORMAL",
+            VoltageState = _voltCols.Count > 0 ? WorstState(_voltCols, row) : "NORMAL",
+            CurrentState = _currCols.Count > 0 ? WorstState(_currCols, row) : "NORMAL",
+            ThermalDelta = ComputeThermalDelta(row, _allTempCols),
+        };
+    }
+
+    /// <summary>
+    /// 現在の行からoffsetSplits分ずれた行の状態を現在値と同じ分類ロジックで計算する。
+    /// インスタンスの現在値プロパティは変更しない。データ未ロード時は既定値を返す。
+    /// </summary>
+    public HKStates SampleStatesAtIndexOffset(int offsetSplits)
+    {
+        if (_rows == null || _rows.Count == 0 || TimeManager.Instance == null)
+        {
+            return new HKStates { TempState = "NORMAL", VoltageState = "NORMAL", CurrentState = "NORMAL", ThermalDelta = 0f };
+        }
+
+        int baseIndex = GetIndexFromGameTime();
+        int rawIndex = baseIndex + offsetSplits;
+        int idx = loop
+            ? ((rawIndex % _rows.Count) + _rows.Count) % _rows.Count
+            : Mathf.Clamp(rawIndex, 0, _rows.Count - 1);
+
+        return ClassifyRow((JObject)_rows[idx]);
+    }
+
     private void ShowRow(int i)
     {
         var row = (JObject)_rows[i];
-        CurrentThermalDelta = ComputeThermalDelta(row, _allTempCols);
-
-        TempState = _tempCols.Count > 0 ? WorstState(_tempCols, row) : "NORMAL";
-        VoltageState = _voltCols.Count > 0 ? WorstState(_voltCols, row) : "NORMAL";
-        CurrentState = _currCols.Count > 0 ? WorstState(_currCols, row) : "NORMAL";
+        var states = ClassifyRow(row);
+        TempState = states.TempState;
+        VoltageState = states.VoltageState;
+        CurrentState = states.CurrentState;
+        CurrentThermalDelta = states.ThermalDelta;
 
         if (dataValueText == null) return;
 
