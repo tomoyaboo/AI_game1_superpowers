@@ -85,7 +85,9 @@ public class DescentReadinessChecklist : MonoBehaviour
     // 原文の文字列をそのまま組み立てること)。
     internal static string FormatLine(string label, string unitName, string status)
     {
-        string mark = status == "完了" ? "[✓]" : "[ ]";
+        // "✓"は日本語フォールバックフォントの文字リストに含まれておらず□表示に
+        // なるため、確実に表示できるASCII文字を使う。
+        string mark = status == "完了" ? "[x]" : "[ ]";
         string dots = label switch
         {
             "降下カプセル 点検" => ".......",

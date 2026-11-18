@@ -192,7 +192,7 @@ public class DataManager : MonoBehaviour
             if (rad != null)
             {
                 int diff = (prevRad == null) ? 0 : Mathf.Abs(rad.SignalCount - prevRad.SignalCount);
-                displayText += $"<b>[Radiation]</b>\nSignal: {rad.SignalCount} (Δ{diff})  Noise: {rad.NoiseCount} <color={StateColor(RadiationState)}>[{RadiationState}]</color>";
+                displayText += $"<b>[Radiation]</b>\nSignal: {rad.SignalCount} (d{diff})  Noise: {rad.NoiseCount} <color={StateColor(RadiationState)}>[{RadiationState}]</color>";
             }
         }
         else

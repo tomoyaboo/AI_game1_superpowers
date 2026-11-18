@@ -6,7 +6,7 @@ public class DescentReadinessChecklistTests
     public void FormatLine_Complete_ReturnsCheckmarkAndLabel()
     {
         string result = DescentReadinessChecklist.FormatLine("降下カプセル 点検", "UNIT 01", "完了");
-        Assert.AreEqual("[✓] 降下カプセル 点検 ....... UNIT 01 / 完了", result);
+        Assert.AreEqual("[x] 降下カプセル 点検 ....... UNIT 01 / 完了", result);
     }
 
     [Test]

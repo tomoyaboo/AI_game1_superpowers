@@ -60,7 +60,9 @@ public class ObservedValuesHud : MonoBehaviour
     internal static string FormatObservedValues(int rad, float mag, float deltaT)
     {
         string magText = float.IsNaN(mag) ? "--" : Mathf.RoundToInt(mag).ToString();
-        return $"RAD {rad} / MAG {magText} / ΔT {Mathf.RoundToInt(deltaT)}";
+        // "Δ"は日本語フォールバックフォントの文字リストに含まれておらず□表示に
+        // なるため、確実に表示できるASCII文字(dT)を使う。
+        return $"RAD {rad} / MAG {magText} / dT {Mathf.RoundToInt(deltaT)}";
     }
 
     internal static string FormatEta(int days, int hours)
