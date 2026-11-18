@@ -44,6 +44,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Indoor/Terminal.unity
     guid: 79dc0a4e4b9999d429d492dc4f483cf6
+  - enabled: 1
+    path: Assets/Scenes/Demo/S1_Hub_Demo.unity
+    guid: 55628e338fde3406fb6646ec36c47221
   m_configObjects:
     com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000, guid: 2774976281ef96945b2bf15aea9f6aae, type: 2}
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: b96fb4e62291cd94d871acead306d6e2, type: 2}
