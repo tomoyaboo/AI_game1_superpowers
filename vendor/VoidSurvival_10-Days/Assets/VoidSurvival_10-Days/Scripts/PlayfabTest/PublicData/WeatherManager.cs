@@ -41,7 +41,7 @@ public class WeatherManager : MonoBehaviour
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject); // 不要なら消してOK
+        DontDestroyOnLoad(transform.root.gameObject); // 不要なら消してOK
     }
 
     private void Update()

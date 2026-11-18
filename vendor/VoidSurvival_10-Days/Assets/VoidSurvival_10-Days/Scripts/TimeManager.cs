@@ -30,7 +30,7 @@ public class TimeManager : MonoBehaviour
 
     void Awake()
     {
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(transform.root.gameObject);
         if (_instance == null)
         {
             _instance = this;
