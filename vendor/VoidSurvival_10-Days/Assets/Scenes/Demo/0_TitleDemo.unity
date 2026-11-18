@@ -770,6 +770,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3053231447080452240, guid: 2299e558ccfb3b84fb41e9f442ed6ae1, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3312577125448548533, guid: 2299e558ccfb3b84fb41e9f442ed6ae1, type: 3}
       propertyPath: m_Name
       value: UIManager

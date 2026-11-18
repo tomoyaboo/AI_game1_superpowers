@@ -134,6 +134,10 @@ public class HubAIntroSequence : MonoBehaviour
 
         if (communicationDialog != null)
         {
+            // CommunicationDialogはワールド空間Canvasで表示されるが、signalPanelは
+            // 画面オーバーレイCanvasのため、重ねたままだと必ずsignalPanelが手前に
+            // 描画されてダイヤル操作ができなくなる。操作可能な間だけ隠す。
+            if (signalPanel != null) signalPanel.SetActive(false);
             communicationDialog.OpenDialog();
             yield return new WaitUntil(() => firstCommSuccess);
             // CommunicationDialog自身が成功時に出す「Successful communication
@@ -150,6 +154,7 @@ public class HubAIntroSequence : MonoBehaviour
             Debug.LogError("[HubAIntroSequence] CommunicationDialog が見つかりません。処理を続行します。");
         }
 
+        if (signalPanel != null) signalPanel.SetActive(true);
         if (signalText != null)
         {
             signalText.text = "> DEMOD ....... OK\n> BEACON : A0-0 / CAP-17 / CRYO-FAIL / LIFE-PRESENT";
@@ -182,8 +187,9 @@ public class HubAIntroSequence : MonoBehaviour
         }
         yield return MessageText.Instance.TextMessage(FinalLines);
 
+        // 以降はプレイヤーの自由行動。シーン遷移は実際の扉(SceneMover)を
+        // 通った時にのみ起きる(自動遷移はしない)。
         isRunning = false;
-        SceneManager.LoadScene(nextSceneName);
     }
 
     private void OnDisable()
