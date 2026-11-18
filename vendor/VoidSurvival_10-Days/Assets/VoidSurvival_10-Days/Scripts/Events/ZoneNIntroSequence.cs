@@ -123,8 +123,9 @@ public class ZoneNIntroSequence : MonoBehaviour
         yield return ShowLines(WeaponLines, 5f);
         yield return ShowLines(MaintenanceLogLines, 3f);
 
+        // 以降はプレイヤーの自由行動。シーン遷移は実際の扉(SceneMover)を
+        // 通った時にのみ起きる(自動遷移はしない)。
         if (FlagData.Instance != null) FlagData.Instance.zoneNFirstVisitComplete = true;
-        SceneManager.LoadScene(nextSceneName);
     }
 
     private IEnumerator ShowLines(List<string> lines, float minimumDuration)
