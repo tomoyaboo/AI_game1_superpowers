@@ -19,6 +19,8 @@ public class FlagData : ScriptableObject
     public bool craftTutorial = false;
     public bool craftWorkbench = false;
     [Header("ZONE-N")]
+    public bool zoneNFirstVisitComplete = false;
+    public bool hubAChargeWaitSequencePlayed = false;
     public bool destructionRock = false;
     public bool findSomeone = false;
 
@@ -35,6 +37,8 @@ public class FlagData : ScriptableObject
             CraftWorkbench = craftWorkbench,
             DestructionRock = destructionRock,
             FindSomeone = findSomeone,
+            ZoneNFirstVisitComplete = zoneNFirstVisitComplete,
+            HubAChargeWaitSequencePlayed = hubAChargeWaitSequencePlayed,
             RelayStation1Connected = relayStation1Connected,
             RelayStation2Connected = relayStation2Connected,
             RelayStation3Connected = relayStation3Connected,
@@ -46,6 +50,8 @@ public class FlagData : ScriptableObject
         craftWorkbench = saveData.CraftWorkbench;
         destructionRock = saveData.DestructionRock;
         findSomeone = saveData.FindSomeone;
+        zoneNFirstVisitComplete = saveData.ZoneNFirstVisitComplete;
+        hubAChargeWaitSequencePlayed = saveData.HubAChargeWaitSequencePlayed;
         relayStation1Connected = saveData.RelayStation1Connected;
         relayStation2Connected = saveData.RelayStation2Connected;
         relayStation3Connected = saveData.RelayStation3Connected;

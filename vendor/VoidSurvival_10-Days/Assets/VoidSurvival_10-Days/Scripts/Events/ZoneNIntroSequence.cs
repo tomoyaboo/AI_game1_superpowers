@@ -83,6 +83,10 @@ public class ZoneNIntroSequence : MonoBehaviour
         // 再起動されても同じインスタンスからシーン遷移を二重に行わない。
         if (sequenceStarted) yield break;
         sequenceStarted = true;
+
+        // 2回目以降のZONE-N訪問(S4)では、I〜Mの強制演出(SEU強制発火や
+        // 武器回収待ちによる即時HUB-A送還を含む)を再生しない。
+        if (FlagData.Instance != null && FlagData.Instance.zoneNFirstVisitComplete) yield break;
         if (passageBlockedPanel != null) passageBlockedPanel.SetActive(false);
 
         // I: 観測値を見せてから、意図的に同じ台詞を繰り返す。
@@ -116,6 +120,7 @@ public class ZoneNIntroSequence : MonoBehaviour
         yield return ShowLines(WeaponLines, 5f);
         yield return ShowLines(MaintenanceLogLines, 3f);
 
+        if (FlagData.Instance != null) FlagData.Instance.zoneNFirstVisitComplete = true;
         SceneManager.LoadScene(nextSceneName);
     }
 
