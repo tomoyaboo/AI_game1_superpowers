@@ -22,6 +22,7 @@ public class HubAIntroSequence : MonoBehaviour
 
     private CommunicationDialog communicationDialog;
     private bool firstCommSuccess;
+    private bool isRunning;
 
     private static readonly List<string> ArrivalLines = new List<string>
     {
@@ -109,6 +110,7 @@ public class HubAIntroSequence : MonoBehaviour
             yield break;
         }
 
+        isRunning = true;
         yield return MessageText.Instance.TextMessage(ArrivalLines);
         yield return MessageText.Instance.TextMessage(WorkbenchExplainLines);
 
@@ -134,6 +136,13 @@ public class HubAIntroSequence : MonoBehaviour
         {
             communicationDialog.OpenDialog();
             yield return new WaitUntil(() => firstCommSuccess);
+            // CommunicationDialog自身が成功時に出す「Successful communication
+            // established!」メッセージ(MessageText経由)がまだ表示中の場合、
+            // ここで即CloseDialogすると、その表示中コルーチンがCommunicationDialogの
+            // GameObject無効化によって中断され、MessageTextが開きっぱなし・
+            // TimeManagerが一時停止したままになり操作不能になる。
+            // 表示が終わる(MessageTextの画面が閉じる)まで待ってから閉じる。
+            yield return new WaitUntil(() => MessageText.Instance == null || !MessageText.Instance.gameObject.activeSelf);
             communicationDialog.CloseDialog();
         }
         else
@@ -156,7 +165,9 @@ public class HubAIntroSequence : MonoBehaviour
         if (priorityPanel != null) priorityPanel.SetActive(true);
         if (priorityText != null)
         {
-            priorityText.text = "> PRIORITY UPDATE\n>   3. SELF_REPAIR ........ 実行中\n>   ─────────────────────\n>   1. SAVE_HUMAN ......... 検出 → 昇格\n>   3. SELF_REPAIR ........ 保留";
+            // "─"と"→"は日本語フォールバックフォントの文字リストに含まれておらず
+            // □表示になるため、確実に表示できるASCII文字を使う。
+            priorityText.text = "> PRIORITY UPDATE\n>   3. SELF_REPAIR ........ 実行中\n>   ---------------------\n>   1. SAVE_HUMAN ......... 検出 -> 昇格\n>   3. SELF_REPAIR ........ 保留";
         }
         yield return new WaitForSeconds(1.5f);
 
@@ -171,6 +182,21 @@ public class HubAIntroSequence : MonoBehaviour
         }
         yield return MessageText.Instance.TextMessage(FinalLines);
 
+        isRunning = false;
         SceneManager.LoadScene(nextSceneName);
+    }
+
+    private void OnDisable()
+    {
+        // 台詞表示や通信解読の途中でシーン遷移・中断が起きても、ダイアログを
+        // 開いたままTimeManagerを一時停止させ続けない。
+        if (!isRunning) return;
+        isRunning = false;
+        StopAllCoroutines();
+        if (MainUI.Instance == null || TimeManager.Instance == null) return;
+        if (communicationDialog != null && communicationDialog.gameObject.activeSelf)
+            communicationDialog.CloseDialog();
+        if (MessageText.Instance != null && MessageText.Instance.gameObject.activeSelf)
+            MessageText.Instance.CloseDialog();
     }
 }
