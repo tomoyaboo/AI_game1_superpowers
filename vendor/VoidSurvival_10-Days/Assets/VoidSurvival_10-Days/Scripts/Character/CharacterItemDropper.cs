@@ -25,6 +25,11 @@ public class CharacterItemDropper : MonoBehaviour
         return Mathf.Clamp01(baseRate * multiplier);
     }
 
+    internal static bool ShouldAttemptEnergyMaterialDrop(bool isEnergyMaterial, bool esdActive)
+    {
+        return !isEnergyMaterial || esdActive;
+    }
+
     [Tooltip("ESD発生中、エネルギー素材のドロップ率に掛ける倍率(仮値)")]
     [SerializeField] private float esdDropRateMultiplier = 1.5f;
 
@@ -57,6 +62,9 @@ public class CharacterItemDropper : MonoBehaviour
         string currentState = HKDataDisplay.Instance != null ? HKDataDisplay.Instance.CurrentState : "NORMAL";
         foreach (var drop in _items)
         {
+            bool esdActive = EsdEffectController.Instance != null && EsdEffectController.Instance.IsEsdActive;
+            if (drop.item != null && !ShouldAttemptEnergyMaterialDrop(drop.item.isEnergyMaterial, esdActive)) continue;
+
             float rate = EffectiveDropRate(drop.dropRate, currentState);
             if (drop.item != null && drop.item.isEnergyMaterial
                 && EsdEffectController.Instance != null && EsdEffectController.Instance.IsEsdActive)

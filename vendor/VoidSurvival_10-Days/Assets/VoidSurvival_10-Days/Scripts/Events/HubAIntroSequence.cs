@@ -101,6 +101,8 @@ public class HubAIntroSequence : MonoBehaviour
 
     private IEnumerator RunSequence()
     {
+        if (FlagData.Instance != null && FlagData.Instance.zoneNFirstVisitComplete) yield break;
+
         if (MessageText.Instance == null)
         {
             Debug.LogError("[HubAIntroSequence] MessageText.Instance が見つかりません。");
