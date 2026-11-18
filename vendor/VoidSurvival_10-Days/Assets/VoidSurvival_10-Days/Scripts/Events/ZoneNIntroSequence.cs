@@ -19,6 +19,7 @@ public class ZoneNIntroSequence : MonoBehaviour
     private bool sequenceStarted;
     private SeuEffectController seuController;
     private bool seuActive;
+    private MessageText activeMessageText;
 
     private static readonly List<string> OutdoorLines = new List<string>
     {
@@ -41,9 +42,11 @@ public class ZoneNIntroSequence : MonoBehaviour
         "この先がA0-0だ。……どかすには爆薬がいるな",
     };
 
+    // "─"と"█"は日本語フォールバックフォントの文字リストに含まれておらず
+    // □表示になるため、確実に表示できるASCII文字で代用する。
     private static readonly List<string> WarningLines = new List<string>
     {
-        "線量、上昇。退─ 避を█",
+        "線量、上昇。退- 避を#",
     };
 
     private static readonly List<string> SeuExplainLines = new List<string>
@@ -140,9 +143,23 @@ public class ZoneNIntroSequence : MonoBehaviour
         }
 
         float startedAt = Time.time;
+        activeMessageText = messageText;
         yield return messageText.TextMessage(lines);
+        activeMessageText = null;
         float remaining = minimumDuration - (Time.time - startedAt);
         if (remaining > 0f) yield return new WaitForSeconds(remaining);
+    }
+
+    private void OnDisable()
+    {
+        // 台詞表示の途中でシーン遷移・中断が起きても、ダイアログを開いたまま
+        // TimeManagerを一時停止させ続けない。
+        StopAllCoroutines();
+        if (activeMessageText != null && activeMessageText.gameObject.activeSelf &&
+            MainUI.Instance != null && TimeManager.Instance != null)
+            activeMessageText.CloseDialog();
+        activeMessageText = null;
+        UnsubscribeSeu();
     }
 
     private IEnumerator ShowStatus(string message, float duration)
