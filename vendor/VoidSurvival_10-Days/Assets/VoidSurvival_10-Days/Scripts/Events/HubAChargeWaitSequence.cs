@@ -78,6 +78,19 @@ public class HubAChargeWaitSequence : MonoBehaviour
         yield return ShowLines(FadingReminderLines, 5f);
     }
 
+    private MessageText activeMessageText;
+
+    private void OnDisable()
+    {
+        // 台詞表示の途中でシーン遷移・中断が起きても、ダイアログを開いたまま
+        // TimeManagerを一時停止させ続けない。
+        StopAllCoroutines();
+        if (activeMessageText != null && activeMessageText.gameObject.activeSelf &&
+            MainUI.Instance != null && TimeManager.Instance != null)
+            activeMessageText.CloseDialog();
+        activeMessageText = null;
+    }
+
     private IEnumerator ShowLines(List<string> lines, float minimumDuration)
     {
         var messageText = MessageText.Instance;
@@ -94,7 +107,9 @@ public class HubAChargeWaitSequence : MonoBehaviour
         }
 
         float startedAt = Time.time;
+        activeMessageText = messageText;
         yield return messageText.TextMessage(lines);
+        activeMessageText = null;
         float remaining = minimumDuration - (Time.time - startedAt);
         if (remaining > 0f) yield return new WaitForSeconds(remaining);
     }
