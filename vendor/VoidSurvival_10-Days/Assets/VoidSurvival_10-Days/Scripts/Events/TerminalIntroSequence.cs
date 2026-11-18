@@ -15,6 +15,7 @@ public class TerminalIntroSequence : MonoBehaviour
     [SerializeField] private GameObject bootLogPanel;
     [SerializeField] private TMP_Text bootLogText;
     [SerializeField] private float bootLogInterval = 0.5f;
+    [SerializeField] private GameObject blackoutPanel;
     [SerializeField] private GameObject player;
     [SerializeField] private DescentReadinessChecklist checklist;
     [SerializeField] private GameObject objectivePanel;
@@ -81,6 +82,9 @@ public class TerminalIntroSequence : MonoBehaviour
             if (controller != null) player = controller.gameObject;
         }
         if (player != null) player.SetActive(false);
+        // 呼びかけ(起動の台詞)が始まるまで、フィールド・HUDを含め画面全体を
+        // 真っ暗にする(S1は固定演出で、操作をほぼさせない)。
+        if (blackoutPanel != null) blackoutPanel.SetActive(true);
         StartCoroutine(RunSequence());
     }
 
@@ -99,8 +103,23 @@ public class TerminalIntroSequence : MonoBehaviour
             yield break;
         }
 
+        // MainUIはAwake()で無条件にOpenMainUI()するため、呼びかけまでは明示的に閉じる。
+        MainUI.Instance.CloseMainUI();
+
         isRunning = true;
         yield return ShowBootLog();
+
+        // A-5相当: 呼びかけ(「よし、起きたな」)と同時にフィールド・プレイヤーの姿を見せる
+        // (操作はまだ渡さない)。
+        if (blackoutPanel != null) blackoutPanel.SetActive(false);
+        PlayerController playerController = null;
+        if (player != null)
+        {
+            player.SetActive(true);
+            playerController = player.GetComponent<PlayerController>();
+            if (playerController != null) playerController.enabled = false;
+        }
+
         yield return MessageText.Instance.TextMessage(OpeningLines);
         yield return MessageText.Instance.TextMessage(OrdersLines);
 
@@ -108,7 +127,7 @@ public class TerminalIntroSequence : MonoBehaviour
         if (objectiveText != null) objectiveText.text = "OBJECTIVE : 観測記録の回収";
 
         // C-4/C-5の簡略化: 会話終了直後にプレイヤーを操作可能にする
-        if (player != null) player.SetActive(true);
+        if (playerController != null) playerController.enabled = true;
         if (MainUI.Instance != null) MainUI.Instance.OpenMainUI();
 
         yield return MessageText.Instance.TextMessage(AfterReleaseLines);
@@ -127,8 +146,9 @@ public class TerminalIntroSequence : MonoBehaviour
         if (checklist != null) checklist.HideChecklist();
         if (objectivePanel != null) objectivePanel.SetActive(false);
 
+        // 以降はプレイヤーの自由行動。シーン遷移は実際の扉(SceneMover)を
+        // 通った時にのみ起きる(自動遷移はしない)。
         isRunning = false;
-        SceneManager.LoadScene(nextSceneName);
     }
 
     private void OnDisable()
@@ -140,7 +160,15 @@ public class TerminalIntroSequence : MonoBehaviour
         StopAllCoroutines();
         if (checklist != null) checklist.HideChecklist();
         if (bootLogPanel != null) bootLogPanel.SetActive(false);
+        if (blackoutPanel != null) blackoutPanel.SetActive(false);
+        if (player != null)
+        {
+            player.SetActive(true);
+            var playerController = player.GetComponent<PlayerController>();
+            if (playerController != null) playerController.enabled = true;
+        }
         if (MainUI.Instance == null || TimeManager.Instance == null) return;
+        MainUI.Instance.OpenMainUI();
         if (MessageText.Instance != null && MessageText.Instance.gameObject.activeSelf)
             MessageText.Instance.CloseDialog();
     }
