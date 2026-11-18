@@ -68,6 +68,8 @@ public class TerminalIntroSequence : MonoBehaviour
         "六人がかりで、そこまでしかいけなかった",
     };
 
+    private bool isRunning;
+
     private void Start()
     {
         // playerはTitleDemoシーン側にしか実体が無く(DontDestroyOnLoadで引き継がれる)、
@@ -97,6 +99,7 @@ public class TerminalIntroSequence : MonoBehaviour
             yield break;
         }
 
+        isRunning = true;
         yield return ShowBootLog();
         yield return MessageText.Instance.TextMessage(OpeningLines);
         yield return MessageText.Instance.TextMessage(OrdersLines);
@@ -124,7 +127,22 @@ public class TerminalIntroSequence : MonoBehaviour
         if (checklist != null) checklist.HideChecklist();
         if (objectivePanel != null) objectivePanel.SetActive(false);
 
+        isRunning = false;
         SceneManager.LoadScene(nextSceneName);
+    }
+
+    private void OnDisable()
+    {
+        // 台詞表示の途中でシーン遷移・中断が起きても、ダイアログを開いたまま
+        // TimeManagerを一時停止させ続けない。
+        if (!isRunning) return;
+        isRunning = false;
+        StopAllCoroutines();
+        if (checklist != null) checklist.HideChecklist();
+        if (bootLogPanel != null) bootLogPanel.SetActive(false);
+        if (MainUI.Instance == null || TimeManager.Instance == null) return;
+        if (MessageText.Instance != null && MessageText.Instance.gameObject.activeSelf)
+            MessageText.Instance.CloseDialog();
     }
 
     private IEnumerator ShowBootLog()

@@ -6,14 +6,14 @@ public class ObservedValuesHudTests
     public void FormatObservedValues_NormalValues_ReturnsExpectedFormat()
     {
         string result = ObservedValuesHud.FormatObservedValues(32, 47.3f, 11.2f);
-        Assert.AreEqual("RAD 32 / MAG 47 / ΔT 11", result);
+        Assert.AreEqual("RAD 32 / MAG 47 / dT 11", result);
     }
 
     [Test]
     public void FormatObservedValues_NaNMag_ShowsDashInsteadOfCrashing()
     {
         string result = ObservedValuesHud.FormatObservedValues(32, float.NaN, 11.2f);
-        Assert.AreEqual("RAD 32 / MAG -- / ΔT 11", result);
+        Assert.AreEqual("RAD 32 / MAG -- / dT 11", result);
     }
 
     [Test]

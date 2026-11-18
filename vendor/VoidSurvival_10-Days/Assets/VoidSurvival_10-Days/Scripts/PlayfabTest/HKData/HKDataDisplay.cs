@@ -201,8 +201,11 @@ public class HKDataDisplay : MonoBehaviour
         }
 
         var cols = ((JObject)_rows[0]).Properties().Select(p => p.Name).ToList();
-        _allTempCols = cols.Where(c => c.Contains("°C") || c.Contains("℃")).ToList();
-        _tempCols = PickMostVariable(cols.Where(c => c.Contains("°C") || c.Contains("℃")).ToList(), tempCount);
+        // ローカルフォールバックデータは"°C"/"℃"を日本語フォールバックフォントの
+        // 文字リスト外の記号を避けて"(C)"表記にしているため、両方を許容する。
+        bool IsTempColumn(string c) => c.Contains("°C") || c.Contains("℃") || c.Contains("(C)");
+        _allTempCols = cols.Where(IsTempColumn).ToList();
+        _tempCols = PickMostVariable(cols.Where(IsTempColumn).ToList(), tempCount);
         _voltCols = PickMostVariable(cols.Where(c => c.Contains("mV") || c.Contains("(V)")).ToList(), voltCount);
         _currCols = PickMostVariable(cols.Where(c => c.Contains("mA")).ToList(), currCount);
 
