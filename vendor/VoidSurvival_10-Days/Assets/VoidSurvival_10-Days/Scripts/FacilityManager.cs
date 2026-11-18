@@ -42,7 +42,7 @@ public class FacilityManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(transform.root.gameObject);
         allBuffs = CollectAllBuffs();
         AllBuffAddToOthers();
     }

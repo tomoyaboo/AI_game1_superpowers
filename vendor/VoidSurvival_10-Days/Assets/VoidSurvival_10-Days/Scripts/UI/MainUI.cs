@@ -29,7 +29,7 @@ public class MainUI : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(transform.root.gameObject);
 
         backButton.onClick.AddListener(() =>
         {

@@ -28,7 +28,7 @@ public class WeatherTester : MonoBehaviour
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(transform.root.gameObject);
     }
 
     public LightPhase CurrentLightPhase { get; private set; } = LightPhase.Sun;
