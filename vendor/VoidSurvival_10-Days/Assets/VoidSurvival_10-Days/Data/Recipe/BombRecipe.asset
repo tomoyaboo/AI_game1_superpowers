@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 487b3c128fe285d4f8d5e53f937cdccb, type: 3}
+  m_Name: BombRecipe
+  m_EditorClassIdentifier: 
+  RecipeID: 101
+  RecipeName: "\u7206\u5F3E"
+  RecipeDescription: 
+  ResultItem: {fileID: 11400000, guid: 9c86ca18b7d1a31479aafb1048870ea1, type: 2}
+  ResultAmount: 1
+  RequiredItems:
+  - item: {fileID: 11400000, guid: b4960cb1e181b4e08a665737a2ef69b3, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 4e46570061e5b674cbb8cc3254790ee8, type: 2}
+    amount: 1

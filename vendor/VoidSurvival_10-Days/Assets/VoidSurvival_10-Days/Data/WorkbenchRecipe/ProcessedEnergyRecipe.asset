@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5977d9b54fdb76b49b7e147a8463141c, type: 3}
+  m_Name: ProcessedEnergyRecipe
+  m_EditorClassIdentifier: 
+  RecipeID: 100
+  RecipeName: "\u52A0\u5DE5\u6E08\u307F\u30A8\u30CD\u30EB\u30AE\u30FC"
+  RecipeDescription: 
+  ResultItem: {fileID: 11400000, guid: b4960cb1e181b4e08a665737a2ef69b3, type: 2}
+  ResultAmount: 1
+  RequiredItem:
+    item: {fileID: 11400000, guid: bbb5da63a863ee44faf2e40a5a8a8eb3, type: 2}
+    amount: 1
+  time: 10
